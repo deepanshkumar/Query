@@ -1,22 +1,8 @@
-// Query to find traces of uTorrent or BitTorrent usage
+// Query to detect file sharing platforms (e.g., uTorrent, BitTorrent) using Defender ATP
 
-// Look for processes associated with uTorrent or BitTorrent
-ProcessCreationEvents
-| where ProcessName in~ ("uTorrent.exe", "BitTorrent.exe")
-
-// Look for files or folders commonly associated with torrent clients
-| union (
-    FileCreationEvents
-    | where FolderPath contains "\\AppData\\Roaming\\uTorrent\\" or FolderPath contains "\\AppData\\Roaming\\BitTorrent\\"
-)
-
-// Look for specific registry keys that may be used by uTorrent or BitTorrent
-| union (
-    RegistryEvents
-    | where RegistryKeyPath contains "Software\\uTorrent\\" or RegistryKeyPath contains "Software\\BitTorrent\\"
-)
-
-// Optionally, add more conditions as per your environment's specific indicators
-
-// Project relevant fields
-| project Timestamp, ActionType, EventName, ProcessName, FolderPath, RegistryKeyPath
+DeviceFileEvents
+| where FolderPath contains "\\AppData\\Roaming\\uTorrent\\" or
+        FolderPath contains "\\AppData\\Roaming\\BitTorrent\\" or
+        FolderPath contains "\\AppData\\Local\\BitTorrent\\" or
+        FolderPath contains "\\AppData\\Local\\uTorrent\\"
+| project Timestamp, ActionType, FileName, FolderPath, InitiatingProcessFileName, InitiatingProcessCommandLine
