@@ -6,3 +6,14 @@ DeviceFileEvents
         FolderPath contains "\\AppData\\Local\\BitTorrent\\" or
         FolderPath contains "\\AppData\\Local\\uTorrent\\"
 | project Timestamp, ActionType, FileName, FolderPath, InitiatingProcessFileName, InitiatingProcessCommandLine
+
+
+SigninLogs
+| where TimeGenerated >= ago(90d)
+| summarize LastSignIn = max(TimeGenerated) by UserId
+| join kind=leftouter (
+    AuditLogs
+    | where OperationName == "PasswordReset"
+) on UserId
+| where LastSignIn < ago(90d) and isnull(OperationName)
+| project UserId, LastSignIn, UserPrincipalName
