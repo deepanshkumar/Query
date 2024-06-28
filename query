@@ -17,3 +17,11 @@ SigninLogs
 ) on UserId
 | where LastSignIn < ago(90d) and isnull(OperationName)
 | project UserId, LastSignIn, UserPrincipalName
+
+
+// Sentinel query to track file writes to USB drives
+
+DeviceFileEvents
+| where ActionType == "Write"  // Filter for file write actions
+| where DeviceType == "RemovableDisk"  // Filter for removable disks (USB drives)
+| project Timestamp, ActionType, FileName, FolderPath, InitiatingProcessFileName, InitiatingProcessCommandLine, DeviceName
