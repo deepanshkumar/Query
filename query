@@ -65,4 +65,14 @@ SecurityEvent
 | sort by TimeGenerated desc
 
 
+// Search for SSH configuration changes indicating PermitRootLogin
+Syslog
+| where Facility == "auth" or Facility == "authpriv"
+| where SyslogMessage has "PermitRootLogin"
+| extend PermitRootLoginStatus = extract("PermitRootLogin\s+(\w+)", 1, SyslogMessage)
+| where PermitRootLoginStatus == "yes"
+| project TimeGenerated, HostName, SyslogMessage, PermitRootLoginStatus
+| sort by TimeGenerated desc
+
+
 
