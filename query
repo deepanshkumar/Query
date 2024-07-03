@@ -92,6 +92,16 @@ Syslog
 | project TimeGenerated, Computer, GroupMembers
 | sort by TimeGenerated desc
 
+// Search for MD5 hashed passwords in authentication logs
+Syslog
+| where Facility == "auth" or Facility == "authpriv"
+| where SyslogMessage matches regex @"[a-f0-9]{32}\b" // Matches MD5 hash (32 characters, hexadecimal)
+| project TimeGenerated, Computer, SyslogMessage
+| extend HashedPasswords = extract(@"([a-f0-9]{32})\b", 1, SyslogMessage)
+| project TimeGenerated, Computer, HashedPasswords
+| order by TimeGenerated desc
+
+
 
 
 
