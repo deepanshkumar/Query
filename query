@@ -101,6 +101,12 @@ Syslog
 | project TimeGenerated, Computer, HashedPasswords
 | order by TimeGenerated desc
 
+# Search for MD5 hashed passwords in logs
+@rawstring("[a-f0-9]{32}\\b")
+| parse @rawstring /(?<HashedPassword>[a-f0-9]{32})\b/
+| select timestamp, hostname, HashedPassword
+| sort by timestamp desc
+
 
 
 
