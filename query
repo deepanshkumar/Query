@@ -26,9 +26,23 @@ DeviceFileEvents
 | where DeviceType == "RemovableDisk"  // Filter for removable disks (USB drives)
 | project Timestamp, ActionType, FileName, FolderPath, InitiatingProcessFileName, InitiatingProcessCommandLine, DeviceName
 
-
+--0
 DeviceRegistryEvents
 | where RegistryValueName matches regex @"password|pass|pwd|credential"
 | where ActionType == "RegistryValueSet" or ActionType == "RegistryValueModified"
 | project Timestamp, DeviceName, RegistryKey, RegistryValueName, RegistryValueData
+
+
+
+# Start by searching for file write events
+@fields timestamp, hostname, filepath, filename, user, process
+@rawstring "*password*" OR "*credentials*" OR "*creds*" OR "*passwd*" OR "*pass*" OR "*pwd*"
+
+# Filter for specific file actions
+| where event_type in ["file_write", "file_create", "file_modify"]
+
+# Include additional context fields
+| select timestamp, hostname, filepath, filename, user, process
+| sort timestamp desc
+
 
