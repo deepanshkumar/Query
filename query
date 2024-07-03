@@ -74,5 +74,14 @@ Syslog
 | project TimeGenerated, HostName, SyslogMessage, PermitRootLoginStatus
 | sort by TimeGenerated desc
 
+# Search for SSH configuration changes or settings indicating PermitRootLogin
+@rawstring("PermitRootLogin")
+| where @rawstring contains "PermitRootLogin"
+| parse @rawstring /PermitRootLogin\s+(?<PermitRootLoginStatus>\w+)/
+| where PermitRootLoginStatus == "yes"
+| select timestamp, hostname, @rawstring, PermitRootLoginStatus
+| sort by timestamp desc
+
+
 
 
