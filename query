@@ -46,3 +46,23 @@ DeviceRegistryEvents
 | sort timestamp desc
 
 
+// Search for potential plaintext credentials in file names
+SecurityEvent
+| where EventID == 4663  // File access event
+| where ObjectType == "File"
+| where ObjectName has_any("password", "credentials", "creds", "passwd", "pass", "pwd")
+| project TimeGenerated, Computer, ObjectName, SubjectUserName, EventData
+
+// Combine with a search for potential plaintext credentials in file contents
+| union (
+    SecurityEvent
+    | where EventID == 4663  // File access event
+    | where ObjectType == "File"
+    | extend FileContent = extract(@"\b(password|credentials|creds|passwd|pass|pwd)\b", 0, AdditionalEventData)
+    | where isnotempty(FileContent)
+    | project TimeGenerated, Computer, ObjectName, SubjectUserName, EventData, FileContent
+)
+| sort by TimeGenerated desc
+
+
+
