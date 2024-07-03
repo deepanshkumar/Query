@@ -82,14 +82,15 @@ Syslog
 | select timestamp, hostname, @rawstring, PermitRootLoginStatus
 | sort by timestamp desc
 
-# Search for log entries related to group memberships
-@rawstring("root")
-| where @rawstring contains "root"
-| parse @rawstring /(\S+)\s+root\s+(?<GroupUsers>.+)/
-| let GroupUsersArray = split(GroupUsers, ",")
-| let NonRootUsers = filter(GroupUsersArray, u -> u != "root")
-| select timestamp, hostname, NonRootUsers
-| sort by timestamp desc
+// Search for non-root users in the root group
+Syslog
+| where Facility == "auth" or Facility == "authpriv"
+| where SyslogMessage contains "root :"
+| extend GroupUsers = extract(@"root\s+:\s+(?<GroupMembers>.*)", 1, SyslogMessage)
+| mv-expand GroupMembers
+| where GroupMembers != "root" and GroupMembers != ""
+| project TimeGenerated, Computer, GroupMembers
+| sort by TimeGenerated desc
 
 
 
