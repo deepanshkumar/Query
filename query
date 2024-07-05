@@ -126,5 +126,12 @@ DeviceInfo
 | where EOSDate <= now()
 | project DeviceName, OSPlatform, OSVersion, EOSDate
 
+DeviceTvmSoftwareInventory
+| where isnotempty(EndOfSupportStatus) and SoftwareName == "windows_10"
+| join kind=inner
+( DeviceInfo
+)
+on DeviceName
+| summarize count() by DeviceName, SensorHealthState, OSDistribution, OSVersion, OSBuild
 
 
