@@ -135,3 +135,14 @@ on DeviceName
 | summarize count() by DeviceName, SensorHealthState, OSDistribution, OSVersion, OSBuild
 
 
+
+
+// Get all DNS Request events
+#event_simpleName=DnsRequest
+// Use regex to determine top level domain
+| DomainName=/\.?(?<topLevelDomain>\w+\.\w+$)/i
+// Create search box for top level domain
+| topLevelDomain=?topLevelDomain
+// Count number of domain variations by top level domain
+| groupBy(topLevelDomain, function=(count(DomainName, distinct=true, as=domainVariations)))
+
